@@ -67,6 +67,7 @@ class AppWindow(QMainWindow):
     def initUI(self):      
         self.filesViewer = QTableWidget()
         self.filesViewer.setColumnCount(2)
+        self.filesViewer.setColumnWidth(0, 350)
         self.filesViewer.setHorizontalHeaderLabels(['Path', 'Hash'])
         self.filesViewer.verticalHeader().hide()
         self.filesViewer.horizontalHeader().setStretchLastSection(True)
@@ -149,7 +150,7 @@ class AppWindow(QMainWindow):
 
     def SaveConfigFile(self):
         self.WriteHashes()
-        self.statusBar().showMessage('Hash table was written')
+        self.statusBar().showMessage('Hash table was saved')
 
     def CreateConfigFile(self):
         fileName = QFileDialog.getSaveFileName(self, 'Create file', '/')
