@@ -8,19 +8,22 @@ author: Alexander Fedorov
 """
 
 import sys
+import md5
 from PyQt4.QtGui import *
 #from PyQt4.QtCore import *
 
 class HashFile:
-    def __init__(self):
-        self.filePath = '/home/alexander/EFI/Hash.dat'
+    def __init__(self, path):
+        self.filePath = path 
         self.Clean()
 
     def Read(self):
         self.Clean()
         for line in open(self.filePath).readlines():
+            print ('Read line:{0}'.format(line))
             params = line.split(':')
-            self.files.append(params)
+            if (len(params) is 2):
+              self.files.append(params)
             
     def Write(self):    
         f = open(self.filePath, 'w')
@@ -33,13 +36,16 @@ class HashFile:
 
     def Insert(self, params):
         self.files.append(params)
-        self.fiels.sort()
+        self.files.sort()
 
     def Remove(self, index):
-        self.files.remove(index)
+        self.files.remove(self.files[index])
 
     def Length(self):  
         return len(self.files)
+
+    def SetPath(self, path):
+        self.filePath = path
         
 
 class AppWindow(QMainWindow):
@@ -47,15 +53,12 @@ class AppWindow(QMainWindow):
     def __init__(self):
         super(AppWindow, self).__init__()
         self.initUI()
-        self.HashFilePath = '/home/alexander/EFI/Hash.dat'
-        self.hashes = []
-        self.readHashFile()
+        self.Hashes = HashFile('/home/alexander/EFI/Hash.dat')
+        self.ReadHashes()
         
     def initUI(self):      
-
         self.filesViewer = QTableWidget()
         self.filesViewer.setColumnCount(2)
-        self.filesViewer.setRowCount(2)
         self.filesViewer.setHorizontalHeaderLabels(['Path', 'Hash'])
         self.filesViewer.verticalHeader().hide()
         self.filesViewer.horizontalHeader().setStretchLastSection(True)
@@ -71,50 +74,59 @@ class AppWindow(QMainWindow):
 
         updateHash = QAction(QIcon('update.png'), 'Update', self)
         updateHash.setShortcut('F5')
-        updateHash.setStatusTip('Update hash file')
+        updateHash.setStatusTip('Write table on disk')
         updateHash.triggered.connect(self.updateHashFile)
+
+        removeHash = QAction(QIcon('remove.png'), 'Remove', self)
+        removeHash.setShortcut('Delete')
+        removeHash.setStatusTip('Remove file from table')
+        removeHash.triggered.connect(self.removeFile)
 
         toolbar = self.addToolBar('Tools')
         toolbar.addAction(openFile)       
         toolbar.addAction(updateHash)
+        toolbar.addAction(removeHash)
         
-        self.setGeometry(300, 300, 350, 300)
+        self.setGeometry(0, 0, 640, 480)
         self.setWindowTitle('File dialog')
         self.show()
     
-    def readHashFile(self):
-        count = 0
-        for line in open(self.HashFilePath).readlines():
-            params = line.split(':')
-            self.hashes.insert(count, params)
-            count += 1
-
-        self.filesViewer.setRowCount(count)
-        count = 0
-        for params in self.hashes:
-            print (params)
+    def ReadHashes(self):
+        self.Hashes.Read()
+        self.UpdateHashes()
+    
+    def UpdateHashes(self):
+        self.filesViewer.setRowCount(self.Hashes.Length())
+        count = 0 
+        for params in self.Hashes.files:
             self.filesViewer.setItem(count, 0, QTableWidgetItem(params[0])) 
             self.filesViewer.setItem(count, 1, QTableWidgetItem(params[1])) 
             count += 1
 
+    def removeFile(self):
+        self.Hashes.Remove(self.filesViewer.currentRow())
+        self.UpdateHashes()
+
+    def WriteHashes(self):
+        self.Hashes.Write()
 
     def updateHashFile(self):
-        self.statusBar().showMessage('Update manual')
+        self.WriteHashes()
+        self.statusBar().showMessage('Hash table was written')
         
     def showDialog(self):
-
-        fname = QFileDialog.getOpenFileName(self, 'Open file', 
-                '/home')
-       
-        #f = open(fname, 'r')
-        
-        #with f:        
-        #    data = f.read()
-        #    self.textEdit.setText(data) 
+        fileName = QFileDialog.getOpenFileName(self, 'Open file', '/home')
+        f = open(fileName, 'r')
+        m = md5.new()
+        with f:        
+            data = f.read()
+            m.update(data)
+        params = [fileName, m.hexdigest()]
+        self.Hashes.Insert(params)
+        self.UpdateHashes()
                                 
         
 def main():
-    
     app = QApplication(sys.argv)
     ex = AppWindow()
     sys.exit(app.exec_())
