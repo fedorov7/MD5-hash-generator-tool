@@ -9,7 +9,7 @@ author: Alexander Fedorov
 
 import sys
 from PyQt4.QtGui import *
-from PyQt4.QtCore import *
+#from PyQt4.QtCore import *
 
 
 class AppWindow(QMainWindow):
@@ -26,6 +26,7 @@ class AppWindow(QMainWindow):
         self.filesViewer.setColumnCount(2)
         self.filesViewer.setHorizontalHeaderLabels(['Path', 'Hash'])
         self.filesViewer.verticalHeader().hide()
+        self.setCentralWidget(self.filesViewer)
 
         statusbar = self.statusBar()
         statusbar.showMessage('Status bar')
@@ -51,13 +52,12 @@ class AppWindow(QMainWindow):
     def readHashFile(self):
         count = 0
         for line in open(self.HashFilePath).readlines():
-            self.filesViewer.setItem(count, 0, QTableWidgetItem('Hello')) 
+            self.filesViewer.setItem(count, 0, QTableWidgetItem(line)) 
             print (line)
             count += 1
 
         print (count)
         self.filesViewer.setRowCount(count)
-        self.filesViewer.setItem(0, 0, QTableWidgetItem('Hello')) 
 
 
     def updateHashFile(self):
