@@ -12,14 +12,14 @@ import md5
 from PyQt4.QtGui import *
 
 class HashFile:
-    def __init__(self, path):
+    def __init__(self, path = None):
         self.filePath = path 
         self.Clean()
 
     def Read(self):
         self.Clean()
         for line in open(self.filePath).readlines():
-            print ('Read line:{0}'.format(line))
+            #print ('Read line:{0}'.format(line))
             params = line.split(':')
             if (len(params) is 2):
                 params[0] = params[0].replace('/', '\\')
@@ -31,7 +31,7 @@ class HashFile:
         for params in self.files:
             if (len(params) is 2):
                 line = '{0}:{1}\n'.format(params[0], params[1])
-                print ('Write line:{0}'.format(line))
+                #print ('Write line:{0}'.format(line))
                 f.write(line)
         f.close()
 
@@ -50,6 +50,10 @@ class HashFile:
 
     def SetPath(self, path):
         self.filePath = path
+
+    def Open(self, path):
+        self.SetPath(path)
+        self.Read()
         
 
 class AppWindow(QMainWindow):
@@ -59,8 +63,6 @@ class AppWindow(QMainWindow):
         self.initUI()
         self.Hashes = HashFile('/home/alexander/EFI/Hash.dat')
         self.ReadHashes()
-        self.infoMsg = QMessageBox()
-        self.infoMsg.setText('MD5 Hash generator tools\n\nBy Alexander Fedorov\nCopyright (c) Kraftway Inc')
         
     def initUI(self):      
         self.filesViewer = QTableWidget()
@@ -73,15 +75,25 @@ class AppWindow(QMainWindow):
         statusbar = self.statusBar()
         statusbar.showMessage('Status bar')
 
-        openFile = QAction(QIcon('insert.png'), 'Insert', self)
-        openFile.setShortcut('Insert')
-        openFile.setStatusTip('Insert hash to table')
-        openFile.triggered.connect(self.showDialog)
+        openFile = QAction(QIcon('open.png'), 'Open', self)
+        openFile.setShortcut('ctrl+o')
+        openFile.setStatusTip('Open file with hash table')
+        openFile.triggered.connect(self.OpenConfigFile)
 
-        updateHash = QAction(QIcon('save.png'), 'Save', self)
-        updateHash.setShortcut('F5')
-        updateHash.setStatusTip('Write table on disk')
-        updateHash.triggered.connect(self.updateHashFile)
+        newFile = QAction(QIcon('new.png'), 'New', self)
+        newFile.setShortcut('ctrl+n')
+        newFile.setStatusTip('Create new hash table')
+        newFile.triggered.connect(self.CreateConfigFile)
+
+        saveFile = QAction(QIcon('save.png'), 'Save', self)
+        saveFile.setShortcut('ctrl+s')
+        saveFile.setStatusTip('Write table on disk')
+        saveFile.triggered.connect(self.SaveConfigFile)
+
+        insertHash = QAction(QIcon('insert.png'), 'Insert', self)
+        insertHash.setShortcut('Insert')
+        insertHash.setStatusTip('Insert hash to table')
+        insertHash.triggered.connect(self.showDialog)
 
         removeHash = QAction(QIcon('remove.png'), 'Remove', self)
         removeHash.setShortcut('Delete')
@@ -94,13 +106,15 @@ class AppWindow(QMainWindow):
         appInfo.triggered.connect(self.infoWindow)
 
         toolbar = self.addToolBar('Tools')
-        toolbar.addAction(updateHash)
         toolbar.addAction(openFile)       
+        toolbar.addAction(newFile)
+        toolbar.addAction(saveFile)
+        toolbar.addAction(insertHash)
         toolbar.addAction(removeHash)
         toolbar.addAction(appInfo)
         
         self.setGeometry(0, 0, 640, 480)
-        self.setWindowTitle('File dialog')
+        self.setWindowTitle('MD5 Hash tools')
         self.show()
     
     def ReadHashes(self):
@@ -122,9 +136,20 @@ class AppWindow(QMainWindow):
     def WriteHashes(self):
         self.Hashes.Write()
 
-    def updateHashFile(self):
+    def OpenConfigFile(self):
+        fileName = QFileDialog.getOpenFileName(self, 'Open hash config', '/')
+        self.Hashes.Open(fileName)
+        self.UpdateHashes()
+
+    def SaveConfigFile(self):
         self.WriteHashes()
         self.statusBar().showMessage('Hash table was written')
+
+    def CreateConfigFile(self):
+        fileName = QFileDialog.getSaveFileName(self, 'Create file', '/')
+        self.Hashes.SetPath(fileName)
+        self.Hashes.Clean()
+        self.UpdateHashes()
         
     def showDialog(self):
         fileName = QFileDialog.getOpenFileName(self, 'Open file', '/')
@@ -144,7 +169,7 @@ class AppWindow(QMainWindow):
         self.UpdateHashes()
 
     def infoWindow(self):
-       self.infoMsg.exec_() 
+       QMessageBox.about(self, 'Hash Generator', 'MD5 Hash generator tools\n\nBy Alexander Fedorov\nCopyright (c) Kraftway Inc')
                                 
         
 def main():
