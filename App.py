@@ -18,14 +18,17 @@ class AppWindow(QMainWindow):
         super(AppWindow, self).__init__()
         self.initUI()
         self.HashFilePath = '/home/alexander/EFI/Hash.dat'
+        self.hashes = []
         self.readHashFile()
         
     def initUI(self):      
 
         self.filesViewer = QTableWidget()
         self.filesViewer.setColumnCount(2)
+        self.filesViewer.setRowCount(2)
         self.filesViewer.setHorizontalHeaderLabels(['Path', 'Hash'])
         self.filesViewer.verticalHeader().hide()
+        self.filesViewer.horizontalHeader().setStretchLastSection(True)
         self.setCentralWidget(self.filesViewer)
 
         statusbar = self.statusBar()
@@ -52,12 +55,17 @@ class AppWindow(QMainWindow):
     def readHashFile(self):
         count = 0
         for line in open(self.HashFilePath).readlines():
-            self.filesViewer.setItem(count, 0, QTableWidgetItem(line)) 
-            print (line)
+            params = line.split(':')
+            self.hashes.insert(count, params)
             count += 1
 
-        print (count)
         self.filesViewer.setRowCount(count)
+        count = 0
+        for params in self.hashes:
+            print (params)
+            self.filesViewer.setItem(count, 0, QTableWidgetItem(params[0])) 
+            self.filesViewer.setItem(count, 1, QTableWidgetItem(params[1])) 
+            count += 1
 
 
     def updateHashFile(self):
