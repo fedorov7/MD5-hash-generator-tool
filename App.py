@@ -61,8 +61,8 @@ class AppWindow(QMainWindow):
     def __init__(self):
         super(AppWindow, self).__init__()
         self.initUI()
-        self.Hashes = HashFile('/home/alexander/EFI/Hash.dat')
-        self.ReadHashes()
+        self.Hashes = HashFile() #'/home/alexander/EFI/Hash.dat'
+        #self.ReadHashes()
         
     def initUI(self):      
         self.filesViewer = QTableWidget()
@@ -90,6 +90,11 @@ class AppWindow(QMainWindow):
         saveFile.setStatusTip('Write table on disk')
         saveFile.triggered.connect(self.SaveConfigFile)
 
+        updateHash = QAction(QIcon('updating.png'), 'Update', self)
+        updateHash.setShortcut('F5')
+        updateHash.setStatusTip('Update hash table')
+        updateHash.triggered.connect(self.UpdateHashFile)
+
         insertHash = QAction(QIcon('insert.png'), 'Insert', self)
         insertHash.setShortcut('Insert')
         insertHash.setStatusTip('Insert hash to table')
@@ -109,6 +114,7 @@ class AppWindow(QMainWindow):
         toolbar.addAction(openFile)       
         toolbar.addAction(newFile)
         toolbar.addAction(saveFile)
+        toolbar.addAction(updateHash)
         toolbar.addAction(insertHash)
         toolbar.addAction(removeHash)
         toolbar.addAction(appInfo)
@@ -150,6 +156,18 @@ class AppWindow(QMainWindow):
         self.Hashes.SetPath(fileName)
         self.Hashes.Clean()
         self.UpdateHashes()
+
+    def UpdateHashFile(self):
+        for params in self.Hashes.files:
+            f = open(params[0].replace('\\', '/'), 'r')
+            m = md5.new()
+            with f:
+                data = f.read()
+                m.update(data)
+            params[1] = m.hexdigest()
+            f.close()
+            self.UpdateHashes()
+        self.statusBar().showMessage('Hash table was updated')
         
     def showDialog(self):
         fileName = QFileDialog.getOpenFileName(self, 'Open file', '/')
