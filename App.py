@@ -11,6 +11,36 @@ import sys
 from PyQt4.QtGui import *
 #from PyQt4.QtCore import *
 
+class HashFile:
+    def __init__(self):
+        self.filePath = '/home/alexander/EFI/Hash.dat'
+        self.Clean()
+
+    def Read(self):
+        self.Clean()
+        for line in open(self.filePath).readlines():
+            params = line.split(':')
+            self.files.append(params)
+            
+    def Write(self):    
+        f = open(self.filePath, 'w')
+        for params in self.files:
+            line = '{0}:{1}\n'.format(params[0], params[1])
+            f.write(line)
+
+    def Clean(self):
+        self.files = []
+
+    def Insert(self, params):
+        self.files.append(params)
+        self.fiels.sort()
+
+    def Remove(self, index):
+        self.files.remove(index)
+
+    def Length(self):  
+        return len(self.files)
+        
 
 class AppWindow(QMainWindow):
     
