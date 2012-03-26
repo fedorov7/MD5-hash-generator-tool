@@ -91,7 +91,7 @@ class AppWindow(QMainWindow):
         saveFile.setStatusTip('Write table on disk')
         saveFile.triggered.connect(self.SaveConfigFile)
 
-        updateHash = QAction(QIcon('updating.png'), 'Update', self)
+        updateHash = QAction(QIcon('update.png'), 'Update', self)
         updateHash.setShortcut('F5')
         updateHash.setStatusTip('Update hash table')
         updateHash.triggered.connect(self.UpdateHashFile)
